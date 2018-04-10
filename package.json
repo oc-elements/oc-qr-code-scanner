@@ -1,0 +1,28 @@
+{
+  "name": "oc-qr-code-scanner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oc-elements/oc-qr-code-scanner.git"
+  },
+  "author": "Jeremy Walters",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oc-elements/oc-qr-code-scanner/issues"
+  },
+  "homepage": "https://github.com/oc-elements/oc-qr-code-scanner#readme",
+  "devDependencies": {
+    "typescript": "^2.8.1"
+  },
+  "dependencies": {
+    "jsqr": "^1.0.4"
+  }
+}

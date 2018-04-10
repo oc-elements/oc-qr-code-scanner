@@ -1,0 +1,22 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-decorators/polymer-decorators.html">
+<link rel="import" href="../app-media/app-media-stream.html">
+
+<dom-module id="oc-qr-code-scanner">
+  <template>
+    <!-- BOOTSTRAP 4 CSS-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <div style="width: 200px; height: 200px; background-color: #0b97c4"></div>
+
+  </template>
+
+    <script type="module" src="../../node_modules/jsqr/dist/jsQR.js"></script>
+    <script src="oc-qr-code-scanner.js"></script>
+</dom-module>
