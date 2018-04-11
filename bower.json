@@ -3,9 +3,9 @@
   "main": "oc-qr-code-scanner.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^2.x",
-    "granite-qrcode-generator": "LostInBrittany/granite-qrcode-generator#^1.1.4",
-    "granite-qrcode-scanner": "LostInBrittany/granite-qrcode-scanner#^2.0.1",
-    "polymer-decorators": "Polymer/polymer-decorators#^2.0.0"
+    "polymer-decorators": "Polymer/polymer-decorators#^2.0.0",
+    "paper-button": "^2.1.0",
+    "app-media": "PolymerElements/app-media"
   },
   "devDependencies": {
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
