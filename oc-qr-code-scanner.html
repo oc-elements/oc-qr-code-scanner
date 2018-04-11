@@ -4,142 +4,135 @@
 <link rel="import" href="../app-media/app-media-video.html">
 <link rel="import" href="../app-media/app-media-image-capture.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-fab/paper-fab.html">
+<link rel="import" href="../iron-icons/image-icons.html">
 
 <link rel="import" href="jsqr-import.html">
 
 
 <dom-module id="oc-qr-code-scanner">
-  <template>
-    <!-- BOOTSTRAP 4 CSS-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-    <div class="media">
+    <template>
+        <!-- BOOTSTRAP 4 CSS-->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+        <app-media-devices
+                id="mediaDevices"
+                devices="{{devices}}"
+                selected-device="{{device}}"
+                kind="videoinput"></app-media-devices>
 
-      <app-media-devices
-              id="mediaDevices"
-              devices="{{devices}}"
-              selected-device="{{device}}"
-              kind="videoinput"></app-media-devices>
+        <app-media-stream
+                video-device="[[device]]"
+                video-constraints='{"width": {"ideal": 200, "max": 480}, "height": {"ideal": 200, "max": 480}}'
+                stream="{{videoStream}}"
+                active></app-media-stream>
 
-      <app-media-stream
-              video-device="[[device]]"
-              video-constraints='{"width": {"ideal": 480, "max": 480}, "height": {"ideal": 480, "max": 480}}'
-              stream="{{videoStream}}"
-              active></app-media-stream>
-
-      <div id="videoWindow">
-
-        <app-media-video
-                id="video"
-                source="[[videoStream]]"
-                on-click="record"
-                autoplay
-                muted></app-media-video>
+        <div class="container">
+            <app-media-video
+                    id="video"
+                    source="[[videoStream]]"
+                    on-click="record"
+                    autoplay
+                    muted></app-media-video>
 
 
-        <app-media-image-capture
-                id="imageCapture"
-                stream="[[videoStream]]"
-                focus-mode="single-shot"
-                red-eye-reduction
-                last-photo="{{photo}}">
-        </app-media-image-capture>
+            <app-media-image-capture
+                    id="imageCapture"
+                    stream="[[videoStream]]"
+                    focus-mode="single-shot"
+                    red-eye-reduction
+                    last-photo="{{photo}}">
+            </app-media-image-capture>
 
-        <paper-button on-tap="takePhoto">Take Picture</paper-button>
+            <div id="targetSquare"></div>
 
-        <div id="targetSquare"></div>
-
-        <paper-ripple
-                id="ripple"
-                noink></paper-ripple>
-        <template is="dom-if" if="[[!active]]">
-          <div id="buttonRow">
-            <paper-fab icon="granite-qrcode-scanner-icons:photo-camera" on-click="_takePhoto"></paper-fab>
-          </div>
-        </template>
-      </div>
+            <paper-ripple
+                    id="ripple"
+                    noink></paper-ripple>
 
 
-    </div>
-    <div>[[data]]</div>
-    <canvas id="c" width=400 height=400></canvas>
+            <div class="row">
+                <div class="mx-auto">
+                    <paper-fab icon="image:camera-alt" on-click="_takePhoto" style="margin-top: -30px;"></paper-fab>
+                </div>
+            </div>
+        </div>
 
-  </template>
-  <script>
+    </template>
+    <script>
 
-	  class OcQrCodeScanner extends Polymer.Element {
+		class OcQrCodeScanner extends Polymer.Element {
 
-		  static get is() {
-			  return 'oc-qr-code-scanner';
-		  }
+			static get is() {
+				return 'oc-qr-code-scanner';
+			}
 
-		  static get properties() {
-			  return {
+			static get properties() {
+				return {
 
-				  visible: {
-					  type: Boolean,
-				  },
+					visible: {
+						type: Boolean,
+					},
 
-				  photo: {
-				  	type: Object,
-                      observer: '_test'
-                  }
-			  }
-		  }
+					photo: {
+						type: Object,
+						observer: '_onPhotoTaken'
+					},
+					/* If qr code is not decode it will return a null*/
+					data: {
+						type: String
+					}
+				}
+			}
 
-		  ready() {
-			  super.ready();
-		  }
+			ready() {
+				super.ready();
+			}
 
-		  takePhoto() {
-			  // NOTE: This method also returns a promise that resolves the photo.
-			  this.$.imageCapture.takePhoto();
-		  }
+			_takePhoto() {
+				// NOTE: This method also returns a promise that resolves the photo.
+				this.$.imageCapture.takePhoto();
+			}
 
-          convertURIToImageData(URI) {
-			  return new Promise(function(resolve, reject) {
-				  if (URI == null) return reject();
-				  var canvas = document.createElement('canvas'),
-					  context = canvas.getContext('2d'),
-					  image = new Image();
-				  image.addEventListener('load', function() {
-					  canvas.width = image.width;
-					  canvas.height = image.height;
-					  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-					  resolve(context.getImageData(0, 0, canvas.width, canvas.height));
-				  }, false);
-				  image.src = URI;
-			  });
-		  }
+			convertURIToImageData(URI) {
+				return new Promise((resolve, reject) => {
+					if (URI == null) return reject();
+					const canvas = document.createElement('canvas'),
+						context = canvas.getContext('2d'),
+						image = new Image();
+					image.addEventListener('load', function () {
+						canvas.width = image.width;
+						canvas.height = image.height;
+						context.drawImage(image, 0, 0, canvas.width, canvas.height);
+						resolve(context.getImageData(0, 0, canvas.width, canvas.height));
+					}, false);
+					image.src = URI;
+				});
+			}
 
-		  _test(t, v) {
-			  const imageUrl = URL.createObjectURL(t);
+			_onPhotoTaken(t) {
+				const imageUrl = URL.createObjectURL(t);
+				this.convertURIToImageData(imageUrl).then((imageData) => {
+					// Here you can use imageData
+					this.data = jsQR(imageData.data, imageData.width, imageData.height).data;
+				});
+				console.log(this.data)
+			}
 
-			  this.convertURIToImageData(imageUrl).then((imageData) => {
-				  // Here you can use imageData
-				  this.data = jsQR(imageData.data, imageData.width, imageData.height).data;
-			  });
-		  	const test = "";
-          }
+			_visibleChanged(visible) {
+				if (visible) {
+					this.dispatchEvent(new CustomEvent('change-section', {
+						bubbles: true, composed: true, detail: {title: 'QR Code'}
+					}));
+				}
+			}
+		}
 
-		  _processQrCode() {
-		  	jsQR(data, width, height)
-          }
+		customElements.define(OcQrCodeScanner.is, OcQrCodeScanner);
 
-		  _visibleChanged(visible) {
-			  if (visible) {
-				  this.dispatchEvent(new CustomEvent('change-section', {
-					  bubbles: true, composed: true, detail: {title: 'QR Code'}
-				  }));
-			  }
-		  }
-	  }
-
-	  customElements.define(OcQrCodeScanner.is, OcQrCodeScanner);
-
-  </script>
+    </script>
 </dom-module>
