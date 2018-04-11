@@ -1,6 +1,6 @@
-import jsQR from "jsQR";
+import * as JSQR from 'jsQR';
 
-namespace OcQrCodeScanner {
+export namespace OcQrCode {
     import customElement = Polymer.decorators.customElement;
     import property = Polymer.decorators.property;
     import observe = Polymer.decorators.observe;
@@ -15,7 +15,8 @@ namespace OcQrCodeScanner {
 
         @observe('imageData')
         private onImageData(imageData: ImageData) {
-            this.qrCode = jsQR(imageData.data, imageData.width, imageData.height)
+            const code = JSQR.default(imageData.data, imageData.width, imageData.height);
         }
     }
 }
+

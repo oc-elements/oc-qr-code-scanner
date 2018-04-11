@@ -1,8 +1,7 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "es2016",
-    "module": "es6",
+    "target": "es6",
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
@@ -12,16 +11,13 @@
     "noEmitOnError": true,
     "emitDecoratorMetadata": true,
     "watch": true,
-    "lib": [
-      "es2016",
-      "dom",
-      "es5"
-    ]
+    "lib": ["es2017", "dom"]
   },
   "include": [
     "*.ts",
     "*.d.ts",
     "bower_components/polymer-decorators/polymer-decorators.d.ts",
+    "jsQR.d.ts",
     "bower_components/polymer/types/*.d.ts"
   ],
   "exclude": [

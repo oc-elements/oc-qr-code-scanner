@@ -3,6 +3,9 @@
 <link rel="import" href="../polymer-decorators/polymer-decorators.html">
 <link rel="import" href="../app-media/app-media-stream.html">
 
+<link rel="import" href="qr-core.html">
+
+
 <dom-module id="oc-qr-code-scanner">
   <template>
     <!-- BOOTSTRAP 4 CSS-->
@@ -12,11 +15,12 @@
         display: block;
       }
     </style>
-
+    <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
     <div style="width: 200px; height: 200px; background-color: #0b97c4"></div>
 
   </template>
 
+    <script> var exports = {}; </script>
     <script type="module" src="../../node_modules/jsqr/dist/jsQR.js"></script>
     <script src="oc-qr-code-scanner.js"></script>
 </dom-module>
