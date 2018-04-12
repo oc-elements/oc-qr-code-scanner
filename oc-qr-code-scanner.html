@@ -27,7 +27,7 @@
 
         <app-media-stream
                 video-device="[[device]]"
-                video-constraints='{"width": {"ideal": 200, "max": 480}, "height": {"ideal": 200, "max": 480}}'
+                video-constraints='{"facingMode":"environment", "width": {"ideal": 200, "max": 480}, "height": {"ideal": 200, "max": 480}}'
                 stream="{{videoStream}}"
                 active></app-media-stream>
 
