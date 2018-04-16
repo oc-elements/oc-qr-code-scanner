@@ -46,7 +46,7 @@
                     muted></app-media-video>
 
             <app-media-image-capture
-                    id="imageCap"
+                    id="imageCapture"
                     stream="[[videoStream]]"
                     focus-mode="single-shot"
                     red-eye-reduction
@@ -127,28 +127,22 @@
 			_takeFrame(e) {
 				this._showCamera = true;
 
-				try {
-					let time = 1;
-					const interval = setInterval(function () {
-						// This 100 value is relative. THis might change at a later change
-						if (time <= 100 && !this._qrFound && this._showCamera) {
-							this.$.imageCap.grabFrame();
-							time++;
-						}
-						else {
-							clearInterval(interval);
-							this._showCamera = false;
-							this._qrFound = false;
-							time = 1;
-						}
-					}.bind(this), 1000);
-				} catch (e) {
-					const obj = {
-						videoTrack: this.$.imageCapture.videoTrack,
-						imageCapture: this.$.imageCapture.imageCapture
-					};
-					console.error(obj)
-				}
+				let time = 1;
+				const interval = setInterval(function () {
+					// This 100 value is relative. THis might change at a later change
+					if (time <= 100 && !this._qrFound && this._showCamera) {
+						this.$.imageCapture.grabFrame()
+							.then()
+							.catch(err => console.error('grabFrame() failed: ', err));
+						time++;
+					}
+					else {
+						clearInterval(interval);
+						this._showCamera = false;
+						this._qrFound = false;
+						time = 1;
+					}
+				}.bind(this), 1000);
 			}
 
 			convertURIToImageData(URI) {
