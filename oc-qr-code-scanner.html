@@ -133,7 +133,7 @@
 					this.time++;
 				}
 				else {
-					this.interval(interval);
+					clearInterval(this.interval);
 					this._showCamera = false;
 					this._qrFound = false;
 					this.time = 1;
