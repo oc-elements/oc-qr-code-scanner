@@ -1,5 +1,5 @@
 <link rel="import" href="../polymer/polymer-element.html">
-<script src="../webrtc-adapter/release/adapter.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <link rel="import" href="../app-media/app-media-devices.html">
 <link rel="import" href="../app-media/app-media-stream.html">
 <link rel="import" href="../app-media/app-media-video.html">
@@ -124,25 +124,27 @@
 				}
 			}
 
-			_takeFrame(e) {
+			_frameGrabRepeat() {
+				// This 100 value is relative. THis might change at a later change
+				if (this.time <= 100 && !this._qrFound && this._showCamera) {
+					this.$.imageCapture.grabFrame()
+						.then()
+						.catch(err => console.error('grabFrame() failed: ', err));
+					this.time++;
+				}
+				else {
+					this.interval(interval);
+					this._showCamera = false;
+					this._qrFound = false;
+					this.time = 1;
+				}
+            }
+
+			_takeFrame() {
 				this._showCamera = true;
 
-				let time = 1;
-				const interval = setInterval(function () {
-					// This 100 value is relative. THis might change at a later change
-					if (time <= 100 && !this._qrFound && this._showCamera) {
-						this.$.imageCapture.grabFrame()
-							.then()
-							.catch(err => console.error('grabFrame() failed: ', err));
-						time++;
-					}
-					else {
-						clearInterval(interval);
-						this._showCamera = false;
-						this._qrFound = false;
-						time = 1;
-					}
-				}.bind(this), 1000);
+				this.time = 1;
+				this.interval = setInterval(this._frameGrabRepeat, 1000);
 			}
 
 			convertURIToImageData(URI) {
