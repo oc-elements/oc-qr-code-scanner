@@ -123,14 +123,15 @@
 				}
 			}
 
-			_takeFrame() {
+			_takeFrame(e) {
 				this._showCamera = true;
 
+				const self = this;
 				let time = 1;
 				const interval = setInterval(() => {
 					// This 100 value is relative. THis might change at a later change
 					if (time <= 100 && !this._qrFound && this._showCamera) {
-						this.$.imageCap.grabFrame();
+						self.$.imageCap.grabFrame();
 						time++;
 					}
 					else {
