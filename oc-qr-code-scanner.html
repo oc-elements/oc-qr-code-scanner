@@ -144,7 +144,7 @@
 				this._showCamera = true;
 
 				this.time = 1;
-				this.interval = setInterval(this._frameGrabRepeat, 1000);
+				this.interval = setInterval(this._frameGrabRepeat.bind(this), 1000);
 			}
 
 			convertURIToImageData(URI) {
