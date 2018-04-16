@@ -27,28 +27,29 @@
 
         <app-media-stream
                 video-device="[[device]]"
-                video-constraints='{"facingMode":"environment", "width": {"ideal": 200, "max": 480}, "height": {"ideal": 200, "max": 480}}'
+                video-constraints='{"facingMode":"environment"}'
                 stream="{{videoStream}}"
                 active></app-media-stream>
 
-        <div class="container">
+        <div class="container" hidden="[[!_showCamera]]">
             <app-media-video
                     id="video"
                     source="[[videoStream]]"
-                    on-click="record"
                     autoplay
                     muted></app-media-video>
-
 
             <app-media-image-capture
                     id="imageCapture"
                     stream="[[videoStream]]"
                     focus-mode="single-shot"
                     red-eye-reduction
-                    last-photo="{{photo}}">
+                    last-frame="{{_frame}}">
             </app-media-image-capture>
 
             <div id="targetSquare"></div>
+        </div>
+
+        <div>
 
             <paper-ripple
                     id="ripple"
@@ -56,8 +57,9 @@
 
 
             <div class="row">
-                <div class="mx-auto">
-                    <paper-fab icon="image:camera-alt" on-click="_takePhoto" style="margin-top: -30px;"></paper-fab>
+                <div class="mx-auto" style="text-align: -webkit-center;">
+                    <div style="font-size: 14px; padding-bottom: 30px;" hidden="[[_showCamera]]">Scan QR Code</div>
+                    <paper-fab icon="image:camera-alt" on-click="_takeFrame" style="margin-top: -30px;"></paper-fab>
                 </div>
             </div>
         </div>
@@ -78,15 +80,29 @@
 						type: Boolean,
 					},
 
-					photo: {
+					_frame: {
 						type: Object,
-						observer: '_onPhotoTaken'
+						observer: '_onFrameTaken'
 					},
 					/* If qr code is not decode it will return a null*/
 					data: {
 						type: String,
-						notify: true
-					}
+						notify: true,
+						observer: '_onQrDecoded'
+					},
+					/* Last decoded frame */
+					_lastDataItem: {
+						type: String
+					},
+					/* Just an indication that qr code was found. This will be set to false on each instance*/
+					_qrFound: {
+						type: Boolean,
+						value: false,
+					},
+					_showCamera: {
+						type: Boolean,
+						value: false,
+					},
 				}
 			}
 
@@ -94,34 +110,57 @@
 				super.ready();
 			}
 
-			_takePhoto() {
-				// NOTE: This method also returns a promise that resolves the photo.
-				this.$.imageCapture.takePhoto();
+			_onQrDecoded(newVal, oldVal) {
+				if (newVal) {
+					this._qrFound = true;
+					this._showCamera = false;
+				}
+			}
+
+			_takeFrame() {
+				this._showCamera = true;
+
+				let time = 1;
+				const interval = setInterval(() => {
+					// This 100 value is relative. THis might change at a later change
+					if (time <= 100 && !this._qrFound && this._showCamera) {
+						this.$.imageCapture.grabFrame();
+						time++;
+					}
+					else {
+						clearInterval(interval);
+						this._showCamera = false;
+						this._qrFound = false;
+						time = 1;
+					}
+				}, 1000);
 			}
 
 			convertURIToImageData(URI) {
 				return new Promise((resolve, reject) => {
 					if (URI == null) return reject();
-					const canvas = document.createElement('canvas'),
-						context = canvas.getContext('2d'),
-						image = new Image();
-					image.addEventListener('load', function () {
-						canvas.width = image.width;
-						canvas.height = image.height;
-						context.drawImage(image, 0, 0, canvas.width, canvas.height);
-						resolve(context.getImageData(0, 0, canvas.width, canvas.height));
-					}, false);
-					image.src = URI;
+					const canvas = document.createElement('canvas');
+					const context = canvas.getContext('2d');
+
+					context.drawImage(URI, 0, 0, canvas.width, canvas.height);
+					resolve(context.getImageData(0, 0, canvas.width, canvas.height));
 				});
 			}
 
-			_onPhotoTaken(t) {
-				const imageUrl = URL.createObjectURL(t);
-				this.convertURIToImageData(imageUrl).then((imageData) => {
+			_onFrameTaken(t) {
+				this.convertURIToImageData(t).then((imageData) => {
 					// Here you can use imageData
-					this.data = jsQR(imageData.data, imageData.width, imageData.height).data;
+					const qrObject = jsQR(imageData.data, imageData.width, imageData.height);
+					if (qrObject) {
+						this.data = qrObject.data;
+
+						// If new image matches the old image exit and close camara. No need for further scanning
+						if (this.data === this._lastDataItem)
+							this._showCamera = false;
+
+						this._lastDataItem = qrObject.data;
+					}
 				});
-				console.log(this.data)
 			}
 
 			_visibleChanged(visible) {
