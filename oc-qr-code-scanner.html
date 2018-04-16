@@ -32,6 +32,11 @@
                 active></app-media-stream>
 
         <div class="container" hidden="[[!_showCamera]]">
+            <div class="row">
+                <div class="mx-auto" style="text-align: -webkit-center;">
+                    <paper-button style="height: 20px; margin-bottom: 10px" raised on-tap="_nextDevice">Switch Camera</paper-button>
+                </div>
+            </div>
             <app-media-video
                     id="video"
                     source="[[videoStream]]"
@@ -161,6 +166,10 @@
 						this._lastDataItem = qrObject.data;
 					}
 				});
+			}
+
+			_nextDevice() {
+				this.$.mediaDevices.selectNextDevice()
 			}
 
 			_getVideoConstraints() {
