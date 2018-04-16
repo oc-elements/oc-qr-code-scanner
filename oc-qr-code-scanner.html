@@ -27,7 +27,7 @@
 
         <app-media-stream
                 video-device="[[device]]"
-                video-constraints='{"facingMode":"environment"}'
+                video-constraints="[[videoConstraints]]"
                 stream="{{videoStream}}"
                 active></app-media-stream>
 
@@ -78,6 +78,17 @@
 
 					visible: {
 						type: Boolean,
+					},
+
+					videoConstraints: {
+						type: Object,
+						value: function() {
+							return {
+								facingMode: {
+									exact: "environment"
+								}
+							};
+						}
 					},
 
 					_frame: {
