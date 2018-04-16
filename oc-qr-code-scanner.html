@@ -45,7 +45,7 @@
                     muted></app-media-video>
 
             <app-media-image-capture
-                    id="imageCapture"
+                    id="imageCap"
                     stream="[[videoStream]]"
                     focus-mode="single-shot"
                     red-eye-reduction
@@ -130,7 +130,7 @@
 				const interval = setInterval(() => {
 					// This 100 value is relative. THis might change at a later change
 					if (time <= 100 && !this._qrFound && this._showCamera) {
-						this.$.imageCapture.grabFrame();
+						this.$.imageCap.grabFrame();
 						time++;
 					}
 					else {
