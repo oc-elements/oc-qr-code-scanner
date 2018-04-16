@@ -27,7 +27,7 @@
 
         <app-media-stream
                 video-device="[[device]]"
-                video-constraints='{"facingMode":"environment"}'
+                video-constraints="[[_getVideoConstraints]]"
                 stream="{{videoStream}}"
                 active></app-media-stream>
 
@@ -162,6 +162,17 @@
 					}
 				});
 			}
+
+			_getVideoConstraints() {
+				return {
+					facingMode: {
+						exact: "environment"
+					},
+					width: {min: 1024, ideal: 1280, max: 1920},
+					height: {min: 776, ideal: 720, max: 1080}
+				}
+			}
+
 
 			_visibleChanged(visible) {
 				if (visible) {
