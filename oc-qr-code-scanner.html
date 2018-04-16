@@ -35,7 +35,8 @@
         <div class="container" hidden="[[!_showCamera]]">
             <div class="row">
                 <div class="mx-auto" style="text-align: -webkit-center;">
-                    <paper-button style="height: 20px; margin-bottom: 10px" raised on-tap="_nextDevice">Switch Camera</paper-button>
+                    <paper-button style="height: 20px; margin-bottom: 10px" raised on-tap="_nextDevice">Switch Camera
+                    </paper-button>
                 </div>
             </div>
             <app-media-video
@@ -126,21 +127,28 @@
 			_takeFrame(e) {
 				this._showCamera = true;
 
-				const self = this;
-				let time = 1;
-				const interval = setInterval(() => {
-					// This 100 value is relative. THis might change at a later change
-					if (time <= 100 && !this._qrFound && this._showCamera) {
-						self.$.imageCap.grabFrame();
-						time++;
-					}
-					else {
-						clearInterval(interval);
-						this._showCamera = false;
-						this._qrFound = false;
-						time = 1;
-					}
-				}, 1000);
+				try {
+					let time = 1;
+					const interval = setInterval(function () {
+						// This 100 value is relative. THis might change at a later change
+						if (time <= 100 && !this._qrFound && this._showCamera) {
+							this.$.imageCap.grabFrame();
+							time++;
+						}
+						else {
+							clearInterval(interval);
+							this._showCamera = false;
+							this._qrFound = false;
+							time = 1;
+						}
+					}.bind(this), 1000);
+				} catch (e) {
+					const obj = {
+						videoTrack: this.$.imageCapture.videoTrack,
+						imageCapture: this.$.imageCapture.imageCapture
+					};
+					console.error(obj)
+				}
 			}
 
 			convertURIToImageData(URI) {
@@ -178,7 +186,7 @@
 				return {
 					width: {min: 1024, ideal: 1280, max: 1920},
 					height: {min: 776, ideal: 720, max: 1080},
-                    facingMode: "environment"
+					facingMode: "environment"
 				}
 			}
 
