@@ -171,7 +171,7 @@
 			_calculateStyling() {
 				/* Style the camera so it is full screen on mobile*/
 				this.$.container.setAttribute("style", "top:" + (this.offsetTop + this.$.buttonsContainer.offsetHeight) + "px;" +
-					"height:" + (window.innerHeight - this.offsetTop - this.$.buttonsContainer.offsetHeight) + "px;" +
+					"height:" + (window.outerHeight - this.offsetTop - this.$.buttonsContainer.offsetHeight) + "px;" +
 					"width:" + window.outerWidth + "px");
 
 				/* Style the target square to be within the video*/
