@@ -76,129 +76,129 @@
     </template>
     <script>
 
-        class OcQrCodeScanner extends Polymer.Element {
+		class OcQrCodeScanner extends Polymer.Element {
 
-            static get is() {
-                return 'oc-qr-code-scanner';
+			static get is() {
+				return 'oc-qr-code-scanner';
+			}
+
+			static get properties() {
+				return {
+
+					visible: {
+						type: Boolean,
+					},
+
+					_frame: {
+						type: Object,
+						observer: '_onFrameTaken'
+					},
+					/* If qr code is not decode it will return a null*/
+					data: {
+						type: String,
+						notify: true,
+						observer: '_onQrDecoded'
+					},
+					/* Last decoded frame */
+					_lastDataItem: {
+						type: String
+					},
+					/* Just an indication that qr code was found. This will be set to false on each instance*/
+					_qrFound: {
+						type: Boolean,
+						value: false,
+					},
+					_showCamera: {
+						type: Boolean,
+						value: false,
+					},
+				}
+			}
+
+			ready() {
+				super.ready();
+			}
+
+			_onQrDecoded(newVal, oldVal) {
+				if (newVal) {
+					this._qrFound = true;
+					this._showCamera = false;
+				}
+			}
+
+			_frameGrabRepeat() {
+				// This 100 value is relative. THis might change at a later change
+				if (this.time <= 500 && !this._qrFound && this._showCamera) {
+					this.$.imageCapture.grabFrame()
+						.then()
+						.catch(err => console.error('grabFrame() failed: ', err));
+					this.time++;
+				}
+				else {
+					clearInterval(this.interval);
+					this._showCamera = false;
+					this._qrFound = false;
+					this.time = 1;
+				}
             }
 
-            static get properties() {
-                return {
+			_takeFrame() {
+				this._showCamera = true;
 
-                    visible: {
-                        type: Boolean,
-                    },
+				this.time = 1;
+				this.interval = setInterval(this._frameGrabRepeat.bind(this), 200);
+			}
 
-                    _frame: {
-                        type: Object,
-                        observer: '_onFrameTaken'
-                    },
-                    /* If qr code is not decode it will return a null*/
-                    data: {
-                        type: String,
-                        notify: true,
-                        observer: '_onQrDecoded'
-                    },
-                    /* Last decoded frame */
-                    _lastDataItem: {
-                        type: String
-                    },
-                    /* Just an indication that qr code was found. This will be set to false on each instance*/
-                    _qrFound: {
-                        type: Boolean,
-                        value: false,
-                    },
-                    _showCamera: {
-                        type: Boolean,
-                        value: false,
-                    },
-                }
-            }
+			convertURIToImageData(URI) {
+				return new Promise((resolve, reject) => {
+					if (URI == null) return reject();
+					const canvas = document.createElement('canvas');
+					const context = canvas.getContext('2d');
 
-            ready() {
-                super.ready();
-            }
+					context.drawImage(URI, 0, 0, canvas.width, canvas.height);
+					resolve(context.getImageData(0, 0, canvas.width, canvas.height));
+				});
+			}
 
-            _onQrDecoded(newVal, oldVal) {
-                if (newVal) {
-                    this._qrFound = true;
-                    this._showCamera = false;
-                }
-            }
+			_onFrameTaken(t) {
+				this.convertURIToImageData(t).then((imageData) => {
+					// Here you can use imageData
+					const qrObject = jsQR(imageData.data, imageData.width, imageData.height);
+					if (qrObject) {
+						this.data = qrObject.data;
 
-            _frameGrabRepeat() {
-                // This 100 value is relative. THis might change at a later change
-                if (this.time <= 100 && !this._qrFound && this._showCamera) {
-                    this.$.imageCapture.grabFrame()
-                        .then()
-                        .catch(err => console.error('grabFrame() failed: ', err));
-                    this.time++;
-                }
-                else {
-                    clearInterval(this.interval);
-                    this._showCamera = false;
-                    this._qrFound = false;
-                    this.time = 1;
-                }
-            }
+						// If new image matches the old image exit and close camara. No need for further scanning
+						if (this.data === this._lastDataItem)
+							this._showCamera = false;
 
-            _takeFrame() {
-                this._showCamera = true;
+						this._lastDataItem = qrObject.data;
+					}
+				});
+			}
 
-                this.time = 1;
-                this.interval = setInterval(this._frameGrabRepeat.bind(this), 1000);
-            }
+			_nextDevice() {
+				this.$.mediaDevices.selectNextDevice()
+			}
 
-            convertURIToImageData(URI) {
-                return new Promise((resolve, reject) => {
-                    if (URI == null) return reject();
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-
-                    context.drawImage(URI, 0, 0, canvas.width, canvas.height);
-                    resolve(context.getImageData(0, 0, canvas.width, canvas.height));
-                });
-            }
-
-            _onFrameTaken(t) {
-                this.convertURIToImageData(t).then((imageData) => {
-                    // Here you can use imageData
-                    const qrObject = jsQR(imageData.data, imageData.width, imageData.height);
-                    if (qrObject) {
-                        this.data = qrObject.data;
-
-                        // If new image matches the old image exit and close camara. No need for further scanning
-                        if (this.data === this._lastDataItem)
-                            this._showCamera = false;
-
-                        this._lastDataItem = qrObject.data;
-                    }
-                });
-            }
-
-            _nextDevice() {
-                this.$.mediaDevices.selectNextDevice()
-            }
-
-            _getVideoConstraints() {
-                return {
-                    width: {min: 1024, ideal: 1280, max: 1920},
-                    height: {min: 776, ideal: 720, max: 1080},
-                    facingMode: "environment"
-                }
-            }
+			_getVideoConstraints() {
+				return {
+					width: {min: 1024, ideal: 1280, max: 1920},
+					height: {min: 776, ideal: 720, max: 1080},
+					facingMode: "environment"
+				}
+			}
 
 
-            _visibleChanged(visible) {
-                if (visible) {
-                    this.dispatchEvent(new CustomEvent('change-section', {
-                        bubbles: true, composed: true, detail: {title: 'QR Code'}
-                    }));
-                }
-            }
-        }
+			_visibleChanged(visible) {
+				if (visible) {
+					this.dispatchEvent(new CustomEvent('change-section', {
+						bubbles: true, composed: true, detail: {title: 'QR Code'}
+					}));
+				}
+			}
+		}
 
-        customElements.define(OcQrCodeScanner.is, OcQrCodeScanner);
+		customElements.define(OcQrCodeScanner.is, OcQrCodeScanner);
 
     </script>
 </dom-module>
