@@ -19,6 +19,19 @@
             :host {
                 display: block;
             }
+
+            .targetSquare {
+                position: absolute;
+                border: solid 5px rgba(200,200,200,0.5);
+            }
+
+            .container {
+                position: absolute;
+                z-index: 1000;
+                left: 0;
+                padding: 0 !important;
+            }
+
         </style>
         <app-media-devices
                 id="mediaDevices"
@@ -32,9 +45,11 @@
                 stream="{{videoStream}}"
                 active></app-media-stream>
 
-        <div class="container" hidden="[[!_showCamera]]">
+        <div id="container" class="container" hidden="[[!_showCamera]]">
             <div class="row">
                 <div class="mx-auto" style="text-align: -webkit-center;">
+                    <paper-button style="height: 20px; margin-bottom: 10px" raised on-tap="_exitCamera">Exit Camera
+                    </paper-button>
                     <paper-button style="height: 20px; margin-bottom: 10px" raised on-tap="_nextDevice">Switch Camera
                     </paper-button>
                 </div>
@@ -43,7 +58,8 @@
                     id="video"
                     source="[[videoStream]]"
                     autoplay
-                    muted></app-media-video>
+                    muted>
+            </app-media-video>
 
             <app-media-image-capture
                     id="imageCapture"
@@ -52,8 +68,7 @@
                     red-eye-reduction
                     last-frame="{{_frame}}">
             </app-media-image-capture>
-
-            <div id="targetSquare"></div>
+            <div id="targetSquare" class="targetSquare"></div>
         </div>
 
         <div>
@@ -126,7 +141,7 @@
 
 			_frameGrabRepeat() {
 				// This 100 value is relative. THis might change at a later change
-				if (this.time <= 500 && !this._qrFound && this._showCamera) {
+				if (this.time <= 100 && !this._qrFound && this._showCamera) {
 					this.$.imageCapture.grabFrame()
 						.then()
 						.catch(err => console.error('grabFrame() failed: ', err));
@@ -138,13 +153,28 @@
 					this._qrFound = false;
 					this.time = 1;
 				}
-            }
+			}
+
+			_calculateStyling() {
+				/* Style the camera so it is full screen on mobile*/
+				this.$.container.setAttribute("style", "top:" + this.offsetTop + "px;" +
+					"height:" + (window.innerHeight - this.offsetTop - 50) + "px;" +
+					"width:" + window.outerWidth + "px");
+
+				/* Style the target square to be within the video*/
+				this.$.targetSquare.setAttribute("style", "left:" + (this.$.video.offsetLeft + 60) + "px;" +
+					"top:" + (this.$.video.offsetTop + 80) + "px;" +
+					"width:" + (this.$.video.offsetWidth - 120) + "px;" +
+					"height:" + (this.$.video.offsetHeight - 160) + "px");
+			}
 
 			_takeFrame() {
 				this._showCamera = true;
 
+				this._calculateStyling();
+
 				this.time = 1;
-				this.interval = setInterval(this._frameGrabRepeat.bind(this), 200);
+				this.interval = setInterval(this._frameGrabRepeat.bind(this), 1000);
 			}
 
 			convertURIToImageData(URI) {
@@ -173,6 +203,10 @@
 					}
 				});
 			}
+
+			_exitCamera() {
+				this._showCamera = false;
+            }
 
 			_nextDevice() {
 				this.$.mediaDevices.selectNextDevice()
