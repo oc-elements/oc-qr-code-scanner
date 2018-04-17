@@ -20,13 +20,14 @@
             :host {
                 display: block;
             }
+
             .camera-icon {
-                margin-left:8px;
+                margin-left: 8px;
             }
 
             .targetSquare {
                 position: absolute;
-                border: solid 5px rgba(200,200,200,0.5);
+                border: solid 5px rgba(200, 200, 200, 0.5);
             }
 
             .container {
@@ -49,16 +50,23 @@
                 stream="{{videoStream}}"
                 active></app-media-stream>
 
-        <div id="container" class="container" hidden="[[!_showCamera]]">
-            <div class="row">
-                <div class="mx-auto" style="text-align: -webkit-center;">
-                    <paper-button style="height: 20px; margin-bottom: 10px" raised on-tap="_exitCamera">Exit Camera</paper-button>
-                    <paper-button class="secondary-button"  raised on-tap="_nextDevice">Switch Camera <iron-icon class="camera-icon" icon="image:switch-camera"></iron-icon>
-                    </paper-button>
-                    
 
+        <div id="buttonsContainer" hidden="[[!_showCamera]]">
+            <div class="row mx-auto justify-content-between" style="text-align: -webkit-center;">
+                <div class="col-1">
+                    <paper-button class="secondary-button" raised on-tap="_exitCamera">
+                        <iron-icon icon="image:icons:close"></iron-icon>
+                    </paper-button>
+                </div>
+                <div class="col-8">
+                    <paper-button class="secondary-button" raised on-tap="_nextDevice">Switch Camera
+                        <iron-icon class="camera-icon" icon="image:switch-camera"></iron-icon>
+                    </paper-button>
                 </div>
             </div>
+        </div>
+
+        <div id="container" class="container" hidden="[[!_showCamera]]">
             <app-media-video
                     id="video"
                     source="[[videoStream]]"
@@ -84,7 +92,9 @@
 
             <div class="row" hidden="[[_showCamera]]">
                 <div class="mx-auto" style="text-align: -webkit-center;">
-                    <paper-button class="secondary-button" raised on-tap="_takeFrame">Scan QR Code <iron-icon class="camera-icon" icon="image:photo-camera"></iron-icon></paper-button>
+                    <paper-button class="secondary-button" raised on-tap="_takeFrame">Scan QR Code
+                        <iron-icon class="camera-icon" icon="image:photo-camera"></iron-icon>
+                    </paper-button>
                 </div>
             </div>
         </div>
@@ -160,8 +170,8 @@
 
 			_calculateStyling() {
 				/* Style the camera so it is full screen on mobile*/
-				this.$.container.setAttribute("style", "top:" + this.offsetTop + "px;" +
-					"height:" + (window.innerHeight - this.offsetTop - 50) + "px;" +
+				this.$.container.setAttribute("style", "top:" + (this.offsetTop + this.$.buttonsContainer.offsetHeight) + "px;" +
+					"height:" + (window.innerHeight - this.offsetTop - this.$.buttonsContainer.offsetHeight - 50) + "px;" +
 					"width:" + window.outerWidth + "px");
 
 				/* Style the target square to be within the video*/
@@ -209,7 +219,7 @@
 
 			_exitCamera() {
 				this._showCamera = false;
-            }
+			}
 
 			_nextDevice() {
 				this.$.mediaDevices.selectNextDevice()
@@ -222,7 +232,6 @@
 					facingMode: "environment"
 				}
 			}
-
 
 			_visibleChanged(visible) {
 				if (visible) {
