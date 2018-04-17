@@ -126,7 +126,7 @@
 
 			_frameGrabRepeat() {
 				// This 100 value is relative. THis might change at a later change
-				if (this.time <= 100 && !this._qrFound && this._showCamera) {
+				if (this.time <= 500 && !this._qrFound && this._showCamera) {
 					this.$.imageCapture.grabFrame()
 						.then()
 						.catch(err => console.error('grabFrame() failed: ', err));
@@ -144,7 +144,7 @@
 				this._showCamera = true;
 
 				this.time = 1;
-				this.interval = setInterval(this._frameGrabRepeat.bind(this), 1000);
+				this.interval = setInterval(this._frameGrabRepeat.bind(this), 200);
 			}
 
 			convertURIToImageData(URI) {
