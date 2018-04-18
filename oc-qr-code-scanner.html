@@ -182,12 +182,15 @@
 			}
 
 			_takeFrame() {
-				this._showCamera = true;
+				/* Timeout hack for some keyboard that close very slow, and influence the viewport of the camera*/
+				Polymer.Async.timeOut.run(() => {
+					this._showCamera = true;
 
-				this._calculateStyling();
+					this._calculateStyling();
 
-				this.time = 1;
-				this.interval = setInterval(this._frameGrabRepeat.bind(this), 1000);
+					this.time = 1;
+					this.interval = setInterval(this._frameGrabRepeat.bind(this), 1000);
+				}, 500);
 			}
 
 			convertURIToImageData(URI) {
