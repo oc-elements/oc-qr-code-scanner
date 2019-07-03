@@ -50,7 +50,7 @@
                 stream="{{videoStream}}"
                 active></app-media-stream>
 
-        <div id="buttonsContainer" hidden$="{{!showCamera}}">
+        <div hidden$=[[!showCamera]] id="buttonsContainer">
             <div class="row" style="text-align: -webkit-center;">
                 <div class="col-8">
                     <paper-button class="secondary-button" raised on-tap="_exitCamera">
@@ -65,7 +65,7 @@
             </div>
         </div>
 
-        <div id="container" class="container" hidden$="{{!showCamera}}" >
+        <div hidden$=[[!showCamera]] id="container" class="container" >
             <app-media-video
                     id="video"
                     source="[[videoStream]]"
@@ -87,164 +87,182 @@
                     id="ripple"
                     noink></paper-ripple>
 
-            <div class="row" hidden$="{{showCamera}}">
-                <div class="mx-auto" style="text-align: -webkit-center;">
-                    <paper-button class="secondary-button" raised on-tap="_takeFrame">Scan QR Code
-                        <iron-icon class="camera-icon" icon="image:photo-camera"></iron-icon>
-                    </paper-button>
+            <template is="dom-if" if="[[!showCamera]]">
+                <div class="row">
+                    <div class="mx-auto" style="text-align: -webkit-center;">
+                        <paper-button class="secondary-button" raised on-tap="_showCamera">Scan QR Code
+                            <iron-icon class="camera-icon" icon="image:photo-camera"></iron-icon>
+                        </paper-button>
+                    </div>
                 </div>
-            </div>
+            </template>
         </div>
 
     </template>
     <script>
 
-		class OcQrCodeScanner extends Polymer.Element {
+        class OcQrCodeScanner extends Polymer.Element {
 
-			static get is() {
-				return 'oc-qr-code-scanner';
-			}
+            static get is() {
+                return 'oc-qr-code-scanner';
+            }
 
-			static get properties() {
-				return {
+            static get properties() {
+                return {
 
-					visible: {
-						type: Boolean,
-					},
+                    visible: {
+                        type: Boolean,
+                    },
 
-					_frame: {
-						type: Object,
-						observer: '_onFrameTaken'
-					},
-					/* If qr code is not decode it will return a null*/
-					data: {
-						type: String,
-						notify: true,
-						observer: '_onQrDecoded'
-					},
-					/* Last decoded frame */
-					_lastDataItem: {
-						type: String
-					},
-					/* Just an indication that qr code was found. This will be set to false on each instance*/
-					_qrFound: {
-						type: Boolean,
-						value: false,
-					},
-					showCamera: {
-						type: Boolean,
-						value: false,
-						notify: true
-					},
-				}
-			}
+                    _frame: {
+                        type: Object,
+                        observer: '_onFrameTaken'
+                    },
+                    /* If qr code is not decode it will return a null*/
+                    data: {
+                        type: String,
+                        notify: true,
+                        observer: '_onQrDecoded'
+                    },
+                    /* Last decoded frame */
+                    _lastDataItem: {
+                        type: String
+                    },
+                    /* Just an indication that qr code was found. This will be set to false on each instance*/
+                    _qrFound: {
+                        type: Boolean,
+                        value: false,
+                    },
+                    showCamera: {
+                        type: Boolean,
+                        notify: true,
+                        observer: "_takeFrame"
+                    },
+                }
+            }
 
-			ready() {
-				super.ready();
-				this._takeFrame();
-			}
+            ready() {
+                super.ready();
+                this._takeFrame(this.showCamera);
 
-			_onQrDecoded(newVal, oldVal) {
-				if (newVal) {
-					this._qrFound = true;
-					this.showCamera = false;
-				}
-			}
+            }
 
-			_frameGrabRepeat() {
-				// This 100 value is relative. THis might change at a later change
-				if (this.time <= 100 && !this._qrFound && this.showCamera) {
-					this.$.imageCapture.grabFrame()
-						.then()
-						.catch(err => console.error('grabFrame() failed: ', err));
-					this.time++;
-				}
-				else {
-					clearInterval(this.interval);
-					this.showCamera = false;
-					this._qrFound = false;
-					this.time = 1;
-				}
-			}
+            _onQrDecoded(newVal, oldVal) {
+                if (newVal) {
+                    this._qrFound = true;
+                    this.showCamera = false;
+                }
+            }
 
-			_calculateStyling() {
-				/* Style the camera so it is full screen on mobile*/
-				this.$.container.setAttribute("style", "top:" + (this.offsetTop + this.$.buttonsContainer.offsetHeight) + "px;" +
-					"height:" + (window.innerHeight - this.offsetTop - this.$.buttonsContainer.offsetHeight) + "px;" +
-					"width:" + window.innerWidth + "px");
+            _showCamera(){
+                this.showCamera = true;
+            }
 
-				/* Style the target square to be within the video*/
-				this.$.targetSquare.setAttribute("style", "left:" + (this.$.video.offsetLeft + 60) + "px;" +
-					"top:" + (this.$.video.offsetTop + 80) + "px;" +
-					"width:" + (this.$.video.offsetWidth - 120) + "px;" +
-					"height:" + (this.$.video.offsetHeight - 160) + "px");
-			}
+            _frameGrabRepeat() {
+                // This 100 value is relative. THis might change at a later change
+                if (this.time <= 100 && !this._qrFound && this.showCamera) {
+                    this.$.imageCapture.grabFrame()
+                        .then()
+                        .catch(e => {
+                            //this just smothers the catch if no error is returned
+                            if(e) {
+                                console.log(e);
+                            }
+                        });
+                    this.time++;
+                }
+                else {
+                    clearInterval(this.interval);
+                    this.showCamera = false;
+                    this._qrFound = false;
+                    this.time = 1;
+                }
+            }
 
-			_takeFrame() {
-				/* Timeout hack for some keyboard that close very slow, and influence the viewport of the camera*/
-				Polymer.Async.timeOut.run(() => {
-					this.showCamera = true;
+            _calculateStyling() {
+                /* Style the camera so it is full screen on mobile*/
+                if(this.shadowRoot.querySelector('#container')) {
+                    let button = this.shadowRoot.querySelector('#buttonsContainer');
+                    this.shadowRoot.querySelector('#container').setAttribute("style", "top:" + (this.offsetTop + button.offsetHeight) + "px;" +
+                        "height:" + (window.innerHeight - this.offsetTop - button.offsetHeight) + "px;" +
+                        "width:" + window.innerWidth + "px");
 
-					this._calculateStyling();
+                    /* Style the target square to be within the video*/
+                    let video = this.shadowRoot.querySelector('#video');
+                    this.shadowRoot.querySelector('#targetSquare').setAttribute("style", "left:" + (video.offsetLeft + 60) + "px;" +
+                        "top:" + (video.offsetTop + 80) + "px;" +
+                        "width:" + (video.offsetWidth - 120) + "px;" +
+                        "height:" + (video.offsetHeight - 160) + "px");
+                }
+            }
 
-					this.time = 1;
-					this.interval = setInterval(this._frameGrabRepeat.bind(this), 1000);
-				}, 500);
-			}
+            _takeFrame(showCamera) {
 
-			convertURIToImageData(URI) {
-				return new Promise((resolve, reject) => {
-					if (URI == null) return reject();
-					const canvas = document.createElement('canvas');
-					const context = canvas.getContext('2d');
+                if(showCamera) {
 
-					context.drawImage(URI, 0, 0, canvas.width, canvas.height);
-					resolve(context.getImageData(0, 0, canvas.width, canvas.height));
-				});
-			}
+                    /* Timeout hack for some keyboard that close very slow, and influence the viewport of the camera*/
+                    Polymer.Async.timeOut.run(() => {
+                        this.time = 1;
+                        this._calculateStyling();
+                        setInterval(() => this._frameGrabRepeat(), 1000);
+                    }, 500);
+                }
+            }
 
-			_onFrameTaken(t) {
-				this.convertURIToImageData(t).then((imageData) => {
-					// Here you can use imageData
-					const qrObject = jsQR(imageData.data, imageData.width, imageData.height);
-					if (qrObject) {
-						this.data = qrObject.data;
 
-						// If new image matches the old image exit and close camara. No need for further scanning
-						if (this.data === this._lastDataItem)
-							this.showCamera = false;
+            convertURIToImageData(URI) {
+                return new Promise((resolve, reject) => {
+                    if (URI == null) return reject();
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
 
-						this._lastDataItem = qrObject.data;
-					}
-				});
-			}
+                    context.drawImage(URI, 0, 0, canvas.width, canvas.height);
+                    resolve(context.getImageData(0, 0, canvas.width, canvas.height));
+                });
+            }
 
-			_exitCamera() {
-				this.showCamera = false;
-			}
+            _onFrameTaken(t) {
+                this.convertURIToImageData(t).then((imageData) => {
+                    // Here you can use imageData
+                    const qrObject = jsQR(imageData.data, imageData.width, imageData.height);
+                    if (qrObject) {
+                        this.data = qrObject.data;
 
-			_nextDevice() {
-				this.$.mediaDevices.selectNextDevice()
-			}
+                        // If new image matches the old image exit and close camera. No need for further scanning
+                        if (this.data === this._lastDataItem)
+                            this.showCamera = false;
 
-			_getVideoConstraints() {
-				return {
-					width: {min: 1024, ideal: 1280, max: 1920},
-					height: {min: 776, ideal: 720, max: 1080},
-					facingMode: "environment"
-				}
-			}
+                        this._lastDataItem = qrObject.data;
+                    }
+                });
+            }
 
-			_visibleChanged(visible) {
-				if (visible) {
-					this.dispatchEvent(new CustomEvent('change-section', {
-						bubbles: true, composed: true, detail: {title: 'QR Code'}
-					}));
-				}
-			}
-		}
+            _exitCamera() {
+                this.showCamera = false;
+            }
 
-		customElements.define(OcQrCodeScanner.is, OcQrCodeScanner);
+            _nextDevice() {
+                this.$.mediaDevices.selectNextDevice()
+            }
+
+            _getVideoConstraints() {
+                return {
+                    width: {min: 1024, ideal: 1280, max: 1920},
+                    height: {min: 776, ideal: 720, max: 1080},
+                    facingMode: "environment"
+                }
+            }
+
+            _visibleChanged(visible) {
+                if (visible) {
+                    this.dispatchEvent(new CustomEvent('change-section', {
+                        bubbles: true, composed: true, detail: {title: 'QR Code'}
+                    }));
+                }
+            }
+        }
+
+        customElements.define(OcQrCodeScanner.is, OcQrCodeScanner);
 
     </script>
 </dom-module>
